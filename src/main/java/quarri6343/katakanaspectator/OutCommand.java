@@ -12,7 +12,7 @@ public class OutCommand extends Command {
     public OutCommand() {
         super("out");
         
-        argument(new PlayerArgument("player"),new StringArgument("word"), (player, string, ctx) -> {
+        argument(new PlayerArgument("player"),new StringArgument("word", StringArgument.Type.PHRASE), (player, string, ctx) -> {
             player.getLocation().createExplosion(4, false, false);
             player.setGameMode(GameMode.SPECTATOR);
             Bukkit.broadcast(Component.text(player.getName() + "が外来語「" + string  + "」を使用しました！").color(NamedTextColor.RED));
