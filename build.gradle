@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id "com.github.johnrengelman.shadow" version "6.1.0"
 }
 
 group = 'quarri6343'
@@ -15,10 +16,12 @@ repositories {
         name = 'sonatype'
         url = 'https://oss.sonatype.org/content/groups/public/'
     }
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
     compileOnly 'com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT'
+    implementation "com.github.TeamKun.CommandLib:bukkit:latest.release"
 }
 
 def targetJavaVersion = 8
@@ -45,3 +48,9 @@ processResources {
         expand props
     }
 }
+
+shadowJar {
+    archiveFileName = "${rootProject.name}-${project.version}.jar"
+    relocate "net.kunmc.lab.commandlib", "${project.group}.${project.name.toLowerCase()}.commandlib"
+}
+tasks.build.dependsOn tasks.shadowJar

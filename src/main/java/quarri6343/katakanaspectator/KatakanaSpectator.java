@@ -1,16 +1,18 @@
 package quarri6343.katakanaspectator;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kunmc.lab.commandlib.CommandLib;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainComponentSerializer;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class KatakanaSpectator extends JavaPlugin implements Listener {
@@ -18,6 +20,7 @@ public final class KatakanaSpectator extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         getServer().getPluginManager().registerEvents(this, this);
+        CommandLib.register(this, new OutCommand());
     }
 
     @Override
@@ -28,14 +31,23 @@ public final class KatakanaSpectator extends JavaPlugin implements Listener {
     public void onPlayerChat(AsyncChatEvent e){
         String message = new PlainComponentSerializer().serialize(e.message());
 
-        if(!isZenkaku(message) || isKana(message) || isKanaHalf(message)){
+        String outMessage = "";
+        outMessage = extractHankaku(message);
+        if(outMessage.equals(""))
+            outMessage = extractKana(message);
+        if(outMessage.equals(""))
+        outMessage = extractKanaHalf(message);
+        
+        if(!outMessage.equals("")){
             if(e.getPlayer().getGameMode() == GameMode.SURVIVAL){
-                Component component = Component.text(message).color(NamedTextColor.RED);
-                e.message(component);
+                message = message.replace(outMessage, ChatColor.RED + outMessage + ChatColor.RESET);
+                e.message(Component.text(message));
                 Bukkit.getScheduler().runTaskLater(this, new Runnable() {
                     @Override
                     public void run() {
+                        e.getPlayer().getLocation().createExplosion(4, false, false);
                         e.getPlayer().setGameMode(GameMode.SPECTATOR);
+                        Bukkit.broadcast(Component.text(e.getPlayer().getName() + "が外来語を使用しました！").color(NamedTextColor.RED));
                     }
                 }, 0);
             }
@@ -54,42 +66,39 @@ public final class KatakanaSpectator extends JavaPlugin implements Listener {
         }
     }
     
-    public static boolean isZenkaku(String text) {
-        byte[] bytes = text.getBytes();
-        if (text.length() != bytes.length) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * 全角カタカナチェック
-     * https://medium-company.com/java-%E5%85%A8%E8%A7%92%E3%82%AB%E3%83%8A-%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF/
-     * @param value 検証対象の値
-     * @return 結果（true：全角カタカナ、false：全角カタカナではない）
-     */
-    public static boolean isKana(String value) {
-        boolean result = false;
+    public static String extractHankaku(String value) {
         if (value != null) {
-            Pattern pattern = Pattern.compile("^.*[\u30a0-\u30ff].*$");
-            result = pattern.matcher(value).matches();
+            Pattern pattern = Pattern.compile("([ -~])+");
+            Matcher matcher = pattern.matcher(value);
+            if (matcher.find()) {
+                // マッチした部分文字列の表示を行う
+                return matcher.group(0);
+            }
         }
-        return result;
+        return "";
     }
-
-    /**
-     * 半角カタカナチェック
-     * https://medium-company.com/java-%E5%8D%8A%E8%A7%92%E3%82%AB%E3%83%8A-%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF/
-     * @param value 検証対象の値
-     * @return 結果（true：半角カタカナ、false：半角カタカナではない）
-     */
-    public static boolean isKanaHalf(String value) {
-        boolean result = false;
+    
+    public static String extractKana(String value) {
         if (value != null) {
-            Pattern pattern = Pattern.compile("^.*[\uFF65-\uFF9F].*$");
-            result = pattern.matcher(value).matches();
+            Pattern pattern = Pattern.compile("([\u30a0-\u30ff])+");
+            Matcher matcher = pattern.matcher(value);
+            if (matcher.find()) {
+                // マッチした部分文字列の表示を行う
+                return matcher.group(0);
+            }
         }
-        return result;
+        return "";
+    }
+    
+    public static String extractKanaHalf(String value) {
+        if (value != null) {
+            Pattern pattern = Pattern.compile("([\uFF65-\uFF9F])+");
+            Matcher matcher = pattern.matcher(value);
+            if (matcher.find()) {
+                // マッチした部分文字列の表示を行う
+                return matcher.group(0);
+            }
+        }
+        return "";
     }
 }
