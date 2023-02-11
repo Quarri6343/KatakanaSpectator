@@ -1,0 +1,4 @@
+name: KatakanaSpectator
+version: '${version}'
+main: quarri6343.katakanaspectator.KatakanaSpectator
+api-version: 1.16
