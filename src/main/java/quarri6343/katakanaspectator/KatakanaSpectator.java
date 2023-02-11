@@ -32,11 +32,7 @@ public final class KatakanaSpectator extends JavaPlugin implements Listener {
         String message = new PlainComponentSerializer().serialize(e.message());
 
         String outMessage = "";
-        outMessage = extractHankaku(message);
-        if(outMessage.equals(""))
-            outMessage = extractKana(message);
-        if(outMessage.equals(""))
-        outMessage = extractKanaHalf(message);
+        outMessage = extractIllegal(message);
         
         if(!outMessage.equals("")){
             if(e.getPlayer().getGameMode() == GameMode.SURVIVAL){
@@ -66,33 +62,9 @@ public final class KatakanaSpectator extends JavaPlugin implements Listener {
         }
     }
     
-    public static String extractHankaku(String value) {
+    public static String extractIllegal(String value) {
         if (value != null) {
-            Pattern pattern = Pattern.compile("([ -~])+");
-            Matcher matcher = pattern.matcher(value);
-            if (matcher.find()) {
-                // マッチした部分文字列の表示を行う
-                return matcher.group(0);
-            }
-        }
-        return "";
-    }
-    
-    public static String extractKana(String value) {
-        if (value != null) {
-            Pattern pattern = Pattern.compile("([\u30a0-\u30ff])+");
-            Matcher matcher = pattern.matcher(value);
-            if (matcher.find()) {
-                // マッチした部分文字列の表示を行う
-                return matcher.group(0);
-            }
-        }
-        return "";
-    }
-    
-    public static String extractKanaHalf(String value) {
-        if (value != null) {
-            Pattern pattern = Pattern.compile("([\uFF65-\uFF9F])+");
+            Pattern pattern = Pattern.compile("([ -~])+|([ァ-ヴ])+|([･-ﾟ])+|([０-９Ａ-Ｚａ-ｚ])+");
             Matcher matcher = pattern.matcher(value);
             if (matcher.find()) {
                 // マッチした部分文字列の表示を行う
